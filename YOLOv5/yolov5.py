@@ -1,5 +1,6 @@
 import argparse
 import os
+import warnings
 
 from YOLOv5_Detection.yolov5 import detect
 from YOLOv5_Detection.yolov5.utils.general import check_requirements
@@ -13,13 +14,15 @@ def get_output_from_video(video_filenames: list, model_files: list) -> None:
 
     for model_file in model_files:
         if not os.path.exists(model_file):
-            raise FileNotFoundError(f"model '{model_file}' does not exist！")
+            warnings.warn(f"model '{model_file}' does not exist!", UserWarning)
+            continue
 
         for video_filename in video_filenames:
             video_file_path = get_file_path(video_filename)
             if not video_file_path.lower().endswith('.mp4'):
-                raise TypeError(
-                    f"File '{video_file_path}' is not a video file. (Currently only mp4 type video files are supported.)")
+                warnings.warn(f"File '{video_file_path}' is not a video file. "
+                              f"(Currently only mp4 type video files are supported.)", UserWarning)
+                continue
 
             output_dir = get_output_dir(video_filename, model_file)
             try:
