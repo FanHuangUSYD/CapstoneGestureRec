@@ -1,0 +1,4 @@
+exp_number, batch,  epoch
+exp,        8,      100[in use]
+exp2,       4,      300
+exp3,       16,     200
