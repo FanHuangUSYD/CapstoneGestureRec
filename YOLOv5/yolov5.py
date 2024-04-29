@@ -5,7 +5,7 @@ import warnings
 from YOLOv5_Detection.yolov5 import detect
 from YOLOv5_Detection.yolov5.utils.general import check_requirements
 
-from setting import model_file, get_file_path, get_output_dir
+from setting import get_file_path, get_output_dir
 
 
 def get_output_from_video(video_filenames: list, model_files: list) -> None:

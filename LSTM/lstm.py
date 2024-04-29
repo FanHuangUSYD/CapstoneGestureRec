@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from LSTM.Data.get_ecg_data import get_data_loader
+from LSTM.DataGenerator.get_ecg_data import get_data_loader
 from LSTM.util import get_directory, device
 
 
@@ -97,10 +97,10 @@ if __name__ == '__main__':
     # initialize model
     input_size = 2
     hidden_size = 64
-    output_size = 2
+    output_size = 5
 
     # initialize dataloader
-    seq_length = 6000
+    seq_length = 4000
     batch_size = 10
 
     # train model
@@ -109,8 +109,8 @@ if __name__ == '__main__':
 
     model = LSTMModel(input_size, hidden_size, output_size)
 
-    train_loader = get_data_loader(num_samples=5000, feature_num=input_size, seq_length=seq_length, batch_size=batch_size)
-    val_loader = get_data_loader(num_samples=100, feature_num=input_size, seq_length=seq_length, batch_size=batch_size)
+    train_loader = get_data_loader(num_samples=6000, feature_num=input_size, seq_length=seq_length, batch_size=batch_size, data_class=output_size)
+    val_loader = get_data_loader(num_samples=1000, feature_num=input_size, seq_length=seq_length, batch_size=batch_size, data_class=output_size)
 
     train_model(model, train_loader, val_loader)
 
