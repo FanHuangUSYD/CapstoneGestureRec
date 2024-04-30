@@ -29,7 +29,7 @@ class LSTMModel(nn.Module):
 
 
 def train_model(model, train_loader, val_loader, test_loader, name_list: list[str], num_epochs: int = 200, learning_rate: float = 0.001,
-                early_stop_epochs: int = 50, train_name: str = "test"):
+                early_stop_epochs: int = 30, train_name: str = "test"):
     model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)

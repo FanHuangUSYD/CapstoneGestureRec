@@ -63,6 +63,7 @@ def plot_data_frequency(label_list: list[int], name_list: list[str] = None, tag:
 
 
 def plot_accuracy(accuracies: Dict[str, List[float]]) -> None:
+    np.savez(os.path.join(output_dir, "accuracy.npz"), **accuracies)
     plt.figure(figsize=(8, 5))
 
     epochs = range(1, len(accuracies[list(accuracies.keys())[0]]) + 1)
@@ -89,6 +90,7 @@ def plot_confusion_matrix(confusion_matrix: np.ndarray, name_list: list[str]) ->
     Returns:
     - None
     """
+    np.savez(os.path.join(output_dir, "confusion_matrix.npz"), confusion_matrix)
     plt.figure(figsize=(12, 9))
     sns.heatmap(confusion_matrix, annot=True, fmt='.2f', cmap='Blues')
     plt.xlabel('True Labels')
