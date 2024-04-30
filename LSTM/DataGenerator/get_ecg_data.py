@@ -73,8 +73,8 @@ def extract_random_segment(array, sample_length: int = 2500):
     return random_segment
 
 
-def get_data_loader(num_samples, feature_num, seq_length: int = 6000, batch_size: int = 10, data_class: int = 2,
-                    tag: str = "TrainDataset") -> DataLoader[tuple[Tensor, ...]]:
+def get_data_loader(name_list: list[str], num_samples: int, feature_num: int, seq_length: int = 6000, batch_size: int = 10, data_class: int = 2,
+                    tag: str = "Training Dataset") -> DataLoader[tuple[Tensor, ...]]:
     _, ecg_data = generate_ecg_data(seq_length / 1000, 1000)
     other_date_list = []
     for mode in range(1, data_class):
@@ -96,7 +96,7 @@ def get_data_loader(num_samples, feature_num, seq_length: int = 6000, batch_size
     feature, label = np.array(x_train).astype(np.float32), np.array(y_train).astype(np.int64)
     dataset = TensorDataset(torch.from_numpy(feature).to(device), torch.from_numpy(label).to(device))
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    plot_data_frequency(y_train, ["ECG Data"] + ["Mock Data " + str(i) for i in range(1, data_class)], tag=tag)
+    plot_data_frequency(y_train, name_list, tag=tag)
     return data_loader
 
 
