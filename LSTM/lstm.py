@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from LSTM.DataGenerator.get_ecg_data import get_data_loader
-from LSTM.util import get_directory, device, plot_accuracy, plot_confusion_matrix
+from LSTM.util import get_directory, device, plot_accuracy, plot_confusion_matrix, get_model_path
 
 
 class LSTMModel(nn.Module):
@@ -16,19 +16,21 @@ class LSTMModel(nn.Module):
         self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
         self.fc = nn.Linear(hidden_size, output_size)
 
-    def forward(self, x):
+    def forward(self, x, ht=None, ct=None):
         # initialise
-        h0 = torch.zeros(1, x.size(0), self.hidden_size).to(device)
-        c0 = torch.zeros(1, x.size(0), self.hidden_size).to(device)
+        if (ht is None) and (ct is None):
+            ht = torch.zeros(1, x.size(0), self.hidden_size).to(device)
+            ct = torch.zeros(1, x.size(0), self.hidden_size).to(device)
 
         # forward
-        out, _ = self.lstm(x, (h0, c0))
+        out, (ht_, ct_) = self.lstm(x, (ht, ct))
         out = self.fc(out[:, -1, :])  # Take the output of the last time point in the sequence as the prediction
 
-        return out
+        return out, (ht_, ct_)
 
 
-def train_model(model, train_loader, val_loader, test_loader, name_list: list[str], num_epochs: int = 200, learning_rate: float = 0.001,
+def train_model(model, train_loader, val_loader, test_loader, name_list: list[str], num_epochs: int = 150,
+                learning_rate: float = 0.001,
                 early_stop_epochs: int = 30, train_name: str = "test"):
     model.to(device)
     criterion = nn.CrossEntropyLoss()
@@ -50,7 +52,7 @@ def train_model(model, train_loader, val_loader, test_loader, name_list: list[st
         correct = 0
         total = 0
         for inputs, targets in train_loader:
-            outputs = model(inputs)
+            outputs, _ = model(inputs)
             _, predicted = torch.max(outputs, 1)
             total += targets.size(0)
             correct += (predicted == targets).sum().item()
@@ -65,7 +67,8 @@ def train_model(model, train_loader, val_loader, test_loader, name_list: list[st
             print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
 
         val_accuracy = evaluate_model(model, val_loader)
-        print(f'Epoch [{epoch + 1}/{num_epochs}], Train Accuracy: {accuracy:.4f} | Validation Accuracy: {val_accuracy:.4f}')
+        print(
+            f'Epoch [{epoch + 1}/{num_epochs}], Train Accuracy: {accuracy:.4f} | Validation Accuracy: {val_accuracy:.4f}')
         train_accuracies.append(accuracy)
         val_accuracies.append(val_accuracy)
 
@@ -77,11 +80,13 @@ def train_model(model, train_loader, val_loader, test_loader, name_list: list[st
             no_improvement_count += 1
 
         if no_improvement_count >= early_stop_epochs:
-            print(f'Early stopping at epoch {epoch + 1} due to no improvement on validation accuracy. Best Accuracy: {best_accuracy:.4f}')
+            print(
+                f'Early stopping at epoch {epoch + 1} due to no improvement on validation accuracy. Best Accuracy: {best_accuracy:.4f}')
             break
         if 1 - accuracy < 10e-10 and 1 - val_accuracy < 10e-10:
-            print(f'Early stopping at epoch {epoch + 1} due to both training and validation accuracy have reached their highest values. '
-                  f'Best Accuracy: {best_accuracy:.4f}')
+            print(
+                f'Early stopping at epoch {epoch + 1} due to both training and validation accuracy have reached their highest values. '
+                f'Best Accuracy: {best_accuracy:.4f}')
             break
 
     torch.save(model, last_model)  # Save the final model
@@ -96,7 +101,7 @@ def evaluate_model(model, dataloader) -> float:
     model.eval()
     with torch.no_grad():
         for inputs, targets in dataloader:
-            outputs = model(inputs)
+            outputs, _ = model(inputs)
             _, predicted = torch.max(outputs, 1)
             total += targets.size(0)
             correct += (predicted == targets).sum().item()
@@ -105,7 +110,6 @@ def evaluate_model(model, dataloader) -> float:
 
 
 def test_model(model_path: str, output_size: int, dataloader, name_list: list[str]) -> None:
-
     target_model = torch.load(model_path)
     target_model.eval()
 
@@ -113,7 +117,7 @@ def test_model(model_path: str, output_size: int, dataloader, name_list: list[st
 
     with torch.no_grad():
         for inputs, targets in dataloader:
-            outputs = target_model(inputs)
+            outputs, _ = target_model(inputs)
             _, predicted = torch.max(outputs, 1)
 
             for i in range(len(targets)):
@@ -130,33 +134,74 @@ def test_model(model_path: str, output_size: int, dataloader, name_list: list[st
     return
 
 
-if __name__ == '__main__':
-    # initialize model
-    input_size = 2
-    hidden_size = 64
-    output_size = 5
+def test_model_in_each_data_point(dataloader) -> None:
+    model_paths = get_model_path("_best.pt")
+    if model_paths:
+        model_path = model_paths[0]
+    else:
+        raise Exception("No models found")
 
-    # initialize dataloader
+    target_model = torch.load(model_path)
+    target_model.eval()
+
+    with torch.no_grad():
+        for inputs, targets in dataloader:
+            ht, ct = None, None
+            interval = int(inputs.size(1) * 0.05)
+            correct = 0
+            count = 0
+            gather = []
+            for timestep in range(inputs.size(1)):  # Iterate over each timestep
+                input_timestep = inputs[:, timestep:(timestep + 1), :]
+                if ht is not None and ct is not None:
+                    outputs, (ht, ct) = target_model(input_timestep, ht, ct)
+                else:
+                    outputs, (ht, ct) = target_model(input_timestep)
+                _, predicted = torch.max(outputs, 1)
+                if predicted.item() == targets.item():
+                    correct += 1
+
+                count += 1
+                if count % interval == 0:
+                    gather.append(round(correct / interval, 4))
+                    correct = 0
+            print(f"Accuracy for {targets} sample: {gather}")
+
+
+if __name__ == '__main__':
+    # # initialize model
+    input_size = 2
+    # hidden_size = 64
+    output_size = 5
+    #
+    # # initialize dataloader
     seq_length = 4000
     batch_size = 10
-
-    # labels
+    #
+    # # labels
     name_list = ["ECG Data"] + ["Mock Data " + str(i) for i in range(1, output_size)]
+    #
+    # # train model
+    # # num_epochs = 100
+    # # learning_rate = 0.001
+    #
+    # model = LSTMModel(input_size, hidden_size, output_size)
+    #
+    # train_loader = get_data_loader(name_list, num_samples=6000, feature_num=input_size, seq_length=seq_length,
+    #                                batch_size=batch_size, data_class=output_size)
+    #
+    # val_loader = get_data_loader(name_list, num_samples=2000, feature_num=input_size, seq_length=seq_length,
+    #                              batch_size=batch_size, data_class=output_size, tag="Validation Dataset")
+    #
+    # test_loader = get_data_loader(name_list, num_samples=1000, feature_num=input_size, seq_length=seq_length,
+    #                               batch_size=batch_size, data_class=output_size, tag="Test Dataset")
+    #
+    # train_model(model, train_loader, val_loader, test_loader, name_list, train_name="LSTM_Validation")
 
-    # train model
-    # num_epochs = 100
-    # learning_rate = 0.001
-
-    model = LSTMModel(input_size, hidden_size, output_size)
-
-    train_loader = get_data_loader(name_list, num_samples=6000, feature_num=input_size, seq_length=seq_length,
-                                   batch_size=batch_size, data_class=output_size)
-
-    val_loader = get_data_loader(name_list, num_samples=2000, feature_num=input_size, seq_length=seq_length,
-                                 batch_size=batch_size, data_class=output_size, tag="Validation Dataset")
-
-    test_loader = get_data_loader(name_list, num_samples=1000, feature_num=input_size, seq_length=seq_length,
-                                  batch_size=batch_size, data_class=output_size, tag="Test Dataset")
-
-    train_model(model, train_loader, val_loader, test_loader, name_list, train_name="LSTM_Validation")
+    ####################################################################################################################
+    ####################################################################################################################
+    test_predication_dataloader = get_data_loader(name_list, num_samples=100, feature_num=input_size,
+                                                  seq_length=seq_length, batch_size=1, data_class=output_size,
+                                                  tag="test predication dataset")
+    test_model_in_each_data_point(test_predication_dataloader)
 
