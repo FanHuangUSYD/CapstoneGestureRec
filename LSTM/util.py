@@ -104,6 +104,16 @@ def plot_confusion_matrix(confusion_matrix: np.ndarray, name_list: list[str]) ->
     return
 
 
+def get_model_path(keyword: str) -> List[str]:
+    files = os.listdir(output_dir)
+
+    matching_files = [f for f in files if keyword in f]
+
+    abs_paths = [os.path.abspath(os.path.join(output_dir, f)) for f in matching_files]
+
+    return abs_paths
+
+
 if __name__ == '__main__':
     plot_accuracy({"Training Dataset": [0.5, 0.4, 0.7, 0.3, 0.6, 0.3, 0.4, 0.8],
                    "Validation Dataset": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.3]})

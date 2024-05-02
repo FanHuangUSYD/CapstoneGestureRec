@@ -101,26 +101,6 @@ def get_data_loader(name_list: list[str], num_samples: int, feature_num: int, se
 
 
 if __name__ == '__main__':
-    # # Generate ECG data for 10 seconds with default sampling rate and noise level
-    # duration = 8  # seconds
-    # sample_rate = 1000
-    # time_point, ecg_data = generate_ecg_data(duration, sample_rate)
-    # other_date_list = []
-    # for mode in range(1, 5):
-    #     _, other_data = generate_other_data(duration, sample_rate, mode=mode)
-    #     other_date_list.append(other_data)
-    # # Plot the ECG data
-    # plt.figure(figsize=(duration, 4))
-    # # plt.plot(extract_random_segment(ecg_data, 3000))
-    # plt.plot(time_point, ecg_data, label='ECG DataGenerator')
-    # for index, other_data in enumerate(other_date_list):
-    #     plt.plot(time_point, other_data, label=f'Mock DataGenerator {index+1}', alpha=0.7)
-    # plt.xlabel('Time (s)')
-    # plt.ylabel('Amplitude')
-    # plt.title('Simulated ECG Signal')
-    # plt.legend(loc='upper right')
-    # plt.grid(True)
-    # plt.show()
     get_data_loader(num_samples=6000, feature_num=2, seq_length=3000, batch_size=10,
                     data_class=5)
     get_data_loader(num_samples=1000, feature_num=2, seq_length=3000, batch_size=10,
