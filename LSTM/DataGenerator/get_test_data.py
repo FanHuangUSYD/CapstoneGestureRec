@@ -6,7 +6,7 @@ import torch
 from torch import Tensor
 from torch.utils.data import TensorDataset, DataLoader
 
-from LSTM.util import device
+from LSTM.util import DEVICE
 
 
 def generate_increasing_sequence(seq_length, feature_num):
@@ -35,6 +35,7 @@ def get_data_loader(num_samples, feature_num, seq_length, batch_size: int = 10) 
         X_train.append(sequence)
         y_train.append(label)
     feature, label = np.array(X_train).astype(np.float32), np.array(y_train).astype(np.int64)
+    device = DEVICE
     dataset = TensorDataset(torch.from_numpy(feature).to(device), torch.from_numpy(label).to(device))
     data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     return data_loader
