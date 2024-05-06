@@ -169,37 +169,36 @@ def test_model_in_each_data_point(dataloader) -> None:
 
 
 if __name__ == '__main__':
-    # # initialize model
-    input_size = 2
-    # hidden_size = 64
-    output_size = 5
-    #
     # # initialize dataloader
+    input_size = 2
+    output_size = 5
     seq_length = 4000
     batch_size = 10
-    #
-    # # labels
-    name_list = ["ECG Data"] + ["Mock Data " + str(i) for i in range(1, output_size)]
-    #
-    # # train model
-    # # num_epochs = 100
-    # # learning_rate = 0.001
-    #
-    # model = LSTMModel(input_size, hidden_size, output_size)
-    #
-    # train_loader = get_data_loader(name_list, num_samples=6000, feature_num=input_size, seq_length=seq_length,
-    #                                batch_size=batch_size, data_class=output_size)
-    #
-    # val_loader = get_data_loader(name_list, num_samples=2000, feature_num=input_size, seq_length=seq_length,
-    #                              batch_size=batch_size, data_class=output_size, tag="Validation Dataset")
-    #
-    # test_loader = get_data_loader(name_list, num_samples=1000, feature_num=input_size, seq_length=seq_length,
-    #                               batch_size=batch_size, data_class=output_size, tag="Test Dataset")
-    #
-    # train_model(model, train_loader, val_loader, test_loader, name_list, train_name="LSTM_Validation")
 
-    ####################################################################################################################
-    ####################################################################################################################
+    # labels
+    name_list = ["ECG Data"] + ["Mock Data " + str(i) for i in range(1, output_size)]
+
+    train_loader = get_data_loader(name_list, num_samples=6000, feature_num=input_size, seq_length=seq_length,
+                                   batch_size=batch_size, data_class=output_size)
+
+    val_loader = get_data_loader(name_list, num_samples=2000, feature_num=input_size, seq_length=seq_length,
+                                 batch_size=batch_size, data_class=output_size, tag="Validation Dataset")
+
+    test_loader = get_data_loader(name_list, num_samples=1000, feature_num=input_size, seq_length=seq_length,
+                                  batch_size=batch_size, data_class=output_size, tag="Test Dataset")
+
+    # train model
+    # # initialize model
+    model = LSTMModel(input_size, 64, output_size)
+    # higher hidden size refer to more info to store in the memory
+
+    enable_training = True
+
+    if enable_training:
+        train_model(model, train_loader, val_loader, test_loader, name_list, train_name="LSTM_Validation")
+
+    # evaluate model
+
     test_predication_dataloader = get_data_loader(name_list, num_samples=100, feature_num=input_size,
                                                   seq_length=seq_length, batch_size=1, data_class=output_size,
                                                   tag="test predication dataset")
