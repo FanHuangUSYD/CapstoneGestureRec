@@ -1,13 +1,12 @@
 import argparse
 import os
 import warnings
-
 from YOLOv5_Detection.yolov5 import detect
 from YOLOv5_Detection.yolov5.utils.general import check_requirements
 
 from setting import get_file_path, get_output_dir
 
-#xiugai
+
 def get_output_from_video(video_filenames: list, model_files: list) -> None:
     if (not model_files) or (not video_filenames):
         raise ValueError(f"No model or video file provided")
@@ -52,8 +51,12 @@ def run_yolov5_detection(video_file: str, model_file: str, output_dir: str) -> N
     return
 
 
+# def get_lstm_single_input_from_yolov5_output(txt_file_path: str) -> None:
+#     pass
+
 if __name__ == '__main__':
     get_output_from_video(video_filenames=[f"video{i}.mp4" for i in range(13, 14)],
-                          model_files=[f"../YOLOv5_Detection/yolov5/runs/train/exp{'' if i == 0 else i}/weights/best.pt" for i in range(4)])
+                          model_files=[f"../YOLOv5_Detection/yolov5/runs/train/exp{'' if i == 0 else i}/weights/best.pt"
+                                       for i in range(4)])
     # get_output_from_video(video_filenames=["video9.mp4"],
     #                       model_files=["../YOLOv5_Detection/yolov5/runs/train/exp/weights/best.pt"])
