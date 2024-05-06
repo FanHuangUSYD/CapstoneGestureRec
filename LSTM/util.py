@@ -1,16 +1,13 @@
 import os
-from collections import Counter
 from datetime import datetime
-from typing import Dict, List
+from collections import Counter
 
 import numpy as np
 import seaborn as sns
 import torch
 from matplotlib import pyplot as plt
-from torch import device
 
 ROOT = os.path.dirname(__file__)
-
 
 def get_directory() -> str:
     now = datetime.now()
@@ -24,10 +21,10 @@ def get_directory() -> str:
     return directory_path
 
 
-output_dir = get_directory()
+OUTPUT_DIR = get_directory()
 
 
-def get_device() -> device:
+def get_device() -> torch.device:
     if torch.cuda.is_available():
         device = torch.device('cuda')
         print('CUDA is available! Using GPU.')
@@ -36,9 +33,7 @@ def get_device() -> device:
         print('CUDA is not available. Using CPU.')
     return device
 
-
-device = get_device()
-
+DEVICE = get_device()
 
 def plot_data_frequency(label_list: list[int], name_list: list[str] = None, tag: str = None) -> None:
     frequency_counter = Counter(label_list)
@@ -58,12 +53,12 @@ def plot_data_frequency(label_list: list[int], name_list: list[str] = None, tag:
         plt.text(index, count + 0.1, str(count), ha='center', va='bottom')
 
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f'class_frequency{" in " + tag if tag else ""}.png'))
+    plt.savefig(os.path.join(OUTPUT_DIR, f'class_frequency{" in " + tag if tag else ""}.png'))
     # plt.show()
 
 
-def plot_accuracy(accuracies: Dict[str, List[float]]) -> None:
-    np.savez(os.path.join(output_dir, "accuracy.npz"), **accuracies)
+def plot_accuracy(accuracies: dict[str, list[float]]) -> None:
+    np.savez(os.path.join(OUTPUT_DIR, "accuracy.npz"), **accuracies)
     plt.figure(figsize=(8, 5))
 
     epochs = range(1, len(accuracies[list(accuracies.keys())[0]]) + 1)
@@ -74,7 +69,7 @@ def plot_accuracy(accuracies: Dict[str, List[float]]) -> None:
     plt.title(f'Accuracy on training and validation Dataset')
     plt.legend()
     plt.grid(True)
-    plt.savefig(os.path.join(output_dir, f'accuracy_of_lstm.png'))
+    plt.savefig(os.path.join(OUTPUT_DIR, f'accuracy_of_lstm.png'))
     # plt.show()
     return
 
@@ -90,7 +85,7 @@ def plot_confusion_matrix(confusion_matrix: np.ndarray, name_list: list[str]) ->
     Returns:
     - None
     """
-    np.savez(os.path.join(output_dir, "confusion_matrix.npz"), confusion_matrix)
+    np.savez(os.path.join(OUTPUT_DIR, "confusion_matrix.npz"), confusion_matrix)
     plt.figure(figsize=(12, 9))
     sns.heatmap(confusion_matrix, annot=True, fmt='.2f', cmap='Blues')
     plt.xlabel('True Labels')
@@ -99,17 +94,17 @@ def plot_confusion_matrix(confusion_matrix: np.ndarray, name_list: list[str]) ->
     if len(name_list) == len(confusion_matrix):
         plt.xticks(ticks=[index + 0.5 for index in range(len(name_list))], labels=name_list)
         plt.yticks(ticks=[index + 0.5 for index in range(len(name_list))], labels=name_list)
-    plt.savefig(os.path.join(output_dir, f'confusion_matrix_of_lstm.png'))
+    plt.savefig(os.path.join(OUTPUT_DIR, f'confusion_matrix_of_lstm.png'))
     # plt.show()
     return
 
 
-def get_model_path(keyword: str) -> List[str]:
-    files = os.listdir(output_dir)
+def get_model_path(keyword: str) -> list[str]:
+    files = os.listdir(OUTPUT_DIR)
 
     matching_files = [f for f in files if keyword in f]
 
-    abs_paths = [os.path.abspath(os.path.join(output_dir, f)) for f in matching_files]
+    abs_paths = [os.path.abspath(os.path.join(OUTPUT_DIR, f)) for f in matching_files]
 
     return abs_paths
 

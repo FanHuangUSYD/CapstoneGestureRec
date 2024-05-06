@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from LSTM.DataGenerator.get_ecg_data import get_data_loader
-from LSTM.util import get_directory, device, plot_accuracy, plot_confusion_matrix, get_model_path
+from LSTM.util import get_directory, DEVICE, plot_accuracy, plot_confusion_matrix, get_model_path
 
 
 class LSTMModel(nn.Module):
@@ -19,6 +19,7 @@ class LSTMModel(nn.Module):
     def forward(self, x, ht=None, ct=None):
         # initialise
         if (ht is None) and (ct is None):
+            device = DEVICE
             ht = torch.zeros(1, x.size(0), self.hidden_size).to(device)
             ct = torch.zeros(1, x.size(0), self.hidden_size).to(device)
 
@@ -32,8 +33,10 @@ class LSTMModel(nn.Module):
 def train_model(model, train_loader, val_loader, test_loader, name_list: list[str], num_epochs: int = 150,
                 learning_rate: float = 0.001,
                 early_stop_epochs: int = 30, train_name: str = "test"):
-    model.to(device)
+    model.to(DEVICE)
     criterion = nn.CrossEntropyLoss()
+    # cross entropy loss for integer labels
+    # BCE Loss for one-hot encoding [with forward function output of： F.softmax(out, dim=1)]
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     best_accuracy = 0.0
@@ -203,4 +206,3 @@ if __name__ == '__main__':
                                                   seq_length=seq_length, batch_size=1, data_class=output_size,
                                                   tag="test predication dataset")
     test_model_in_each_data_point(test_predication_dataloader)
-
