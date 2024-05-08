@@ -11,7 +11,8 @@ from torch.utils.data import DataLoader, TensorDataset
 from LSTM.util import DEVICE
 
 
-def transform_single_yolov5_video_output(txt_file_path: str, class_label: int, total_frames: int, box_num: int = 2) -> tuple[list[list[float]], list[int]]:
+def transform_single_yolov5_video_output(txt_file_path: str, class_label: int, total_frames: int, box_num: int = 2) \
+        -> tuple[list[list[float]], list[int]]:
     x_train, y_train = [], []
     txt_files = glob.glob(txt_file_path + "/*.txt")
     if not txt_files:
